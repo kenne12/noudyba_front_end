@@ -1,6 +1,6 @@
 import {Datasets} from "./datasets";
 
-export interface DataDashboard {
-  label?: string[];
+export interface DashboardData {
+  labels?: string[];
   datasets?: Datasets [];
 }

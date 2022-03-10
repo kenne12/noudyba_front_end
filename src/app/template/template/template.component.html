@@ -1,0 +1,84 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-info">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">NOUDYBA</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarScroll">
+      <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" routerLink="/dashboard">Dashboard</a>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownSec" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Sécurité
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+            <li><a class="dropdown-item" routerLink="/utilisateurs">Action</a></li>
+            <li><a class="dropdown-item" href="#">Another action</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownPar" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Parametrage
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+            <li><a class="dropdown-item" routerLink="/annees">Exercice</a></li>
+            <li><a class="dropdown-item" routerLink="/calendrier">Calendrier</a></li>
+            <li><a class="dropdown-item" routerLink="/annees">Rubriques</a></li>
+            <li><a class="dropdown-item" routerLink="/events">Evenements</a></li>
+
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownOp" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Operations
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+            <li><a class="dropdown-item" routerLink="/membres">Membres</a></li>
+            <li><a class="dropdown-item" routerLink="/subscriptions">Souscription</a></li>
+            <li><a class="dropdown-item" routerLink="/payments">Payment</a></li>
+            <li><a class="dropdown-item" routerLink="/contributions">Contribution</a></li>
+
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+
+      <div *ngIf="username" class="collapse navbar-collapse" style="float: right" id="navbarScroll">
+        <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{username}}
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+              <li><a class="dropdown-item" (click)="logout()" >Log out</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid">
+
+  <router-outlet>
+
+  </router-outlet>
+
+</div>
+
+

@@ -1,0 +1,240 @@
+<p-toast></p-toast>
+
+<!-- Content Header (Page header) -->
+<div class="content-header mt-3">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Gestion des Payements</h1>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+        <ol style="float: right" class="breadcrumb float-sm-right">
+
+          <button class="btn btn-primary" (click)="prepareCreateNewPayment()">
+            <i class="fa fa-plus-circle"></i>
+            New Payment
+          </button>
+
+          <button class="btn btn-danger p-ml-1"
+                  [disabled]="!selectedPayments || !selectedPayments.length">
+            <i class="pi pi-trash"></i>
+          </button>
+
+          <button (click)="printReport()" type="button" class="btn btn-primary p-ml-1">
+            <i class="pi pi-file-pdf"></i>
+            Print Report
+          </button>
+
+          <span>
+              <select ngModel="ALL" name="status"
+                      class="btn btn-info p-ml-1">
+                <option value="ALL">ALL</option>
+                <option value="true">ACTIF</option>
+                <option value="false">INACTIF</option>
+              </select>
+            </span>
+
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+
+    <ng-container *ngIf="(appState$ | async) as appState" [ngSwitch]="appState.dataState">
+      <ng-container *ngSwitchCase="DataSate.LOADING_STATE">
+        <div class="col-md-12 single-note-item text-center">
+          <div class="spinner-border text-info" role="status"></div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="DataSate.LOADED_STATE">
+
+        <p-table #dt [value]="appState.appData.datas.payments" [rows]="10" [paginator]="true"
+                 [globalFilterFields]="['souscription.evenement.rubrique.nom','souscription.membre.nom','datePayement','montant' , 'souscription.montantPaye']"
+                 [(selection)]="selectedPayments" [rowHover]="true" dataKey="idPayementSouscription"
+                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                 [showCurrentPageReport]="true">
+          <ng-template pTemplate="caption">
+            <div class="p-d-flex p-ai-center p-jc-between">
+              <h5 class="p-m-0">Liste des Payements</h5>
+              <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')"
+                           placeholder="Search..."/>
+                </span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem">
+                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+              </th>
+              <th pSortableColumn="souscription.membre.nom">Membre
+                <p-sortIcon field="souscription.membre.nom"></p-sortIcon>
+              </th>
+              <th pSortableColumn="souscription.evenement.rubrique.nom">Rubrique
+                <p-sortIcon field="souscription.evenement.rubrique.nom"></p-sortIcon>
+              </th>
+              <th pSortableColumn="montant">Montant
+                <p-sortIcon field="montant"></p-sortIcon>
+              </th>
+              <th pSortableColumn="datePayement">Date
+                <p-sortIcon field="datePayement"></p-sortIcon>
+              </th>
+              <th pSortableColumn="souscription.montantPaye">Montant Payé
+                <p-sortIcon field="souscription.montantPaye"></p-sortIcon>
+              </th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-payment>
+            <tr>
+              <td>
+                <p-tableCheckbox [value]="payment"></p-tableCheckbox>
+              </td>
+              <td>{{payment.souscription.membre.nom}} {{payment.souscription.membre.prenom}}</td>
+              <td>{{payment.souscription.evenement.rubrique.nom}}</td>
+              <td>{{payment.montant | number :'0.0'}}</td>
+              <td>{{payment.datePayement | date :'yyyy/MM/dd'}}</td>
+              <td>{{payment.souscription.montantPaye | number :'0.0'}}</td>
+              <td>
+                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success p-ml-1"
+                        [disabled]="checkIfEditable(payment)"
+                        (click)="prepareEditPayment(payment)"></button>
+
+                <button pButton pRipple icon="pi pi-trash"
+                        class="p-button-rounded p-button-warning p-ml-1"
+                        (click)="deletePayment(payment)"></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="summary">
+            <div class="p-d-flex p-ai-center p-jc-between">
+              In total there
+              are {{appState.appData.datas.payments ? appState.appData.datas.payments.length : 0 }}
+              Payments.
+            </div>
+          </ng-template>
+        </p-table>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="DataSate.ERROR_STATE">
+        <div class="alert-danger">
+          {{appState.error}}
+        </div>
+      </ng-container>
+    </ng-container>
+
+  </div>
+</section>
+
+
+<form [formGroup]="paymentForm" (ngSubmit)="savePayment()">
+
+  <p-dialog [header]="headerText" [(visible)]="displayModal" [modal]="true" [style]="{width: '50vw'}"
+            [baseZIndex]="10000"
+            [draggable]="true" [resizable]="false">
+
+    <ng-template pTemplate="body">
+
+      <input type="hidden" id="idPayementSouscription"
+             [formControlName]="'idPayementSouscription'" name="idPayementSouscription" />
+
+      <div class="row p-mt-1">
+        <div class="form-group col-md-6">
+          <label for="idMembre">Membres</label>
+          <select class="form-select form-select-lg" id="idMembre"
+                  [(ngModel)]="idMember" [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="filterSubscription($event)">
+            <option selected>-- Select One --</option>
+            <option *ngFor="let item of listMembres" [value]="item.idMembre"
+                    [selected]="item.idMembre===idMember">
+              {{item.nom}} {{item.prenom}}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row p-mt-1">
+        <div class="form-group col-md-12">
+          <label for="idSouscription">Souscription</label>
+          <select class="form-select form-select-lg" id="idSouscription" [formControlName]="'idSouscription'"
+                  (ngModelChange)="updateConnexData($event)">
+            <option selected> -- Select One --</option>
+            <option *ngFor="let item of listSouscriptions" [value]="item.idSouscription"
+                    [selected]="item.idSouscription===paymentRequest.idSouscription">
+              {{item.membre.nom}} {{item.membre.prenom}} -- {{item.evenement.rubrique.nom}}
+              -- {{item.montant | number: '0.0'}}
+              <span *ngIf="!f.idSouscription.valid && f.idSouscription.touched">
+                                Please provide a valid rubric
+                            </span>
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+
+        <div class="form-group col-md-6">
+          <label for="montant">Montant</label>
+          <input type="text" id="montant" class="form-control" [formControlName]="'montant'"/>
+          <span *ngIf="!f.montant.valid && f.montant.touched" class="text-danger">
+                                Please provide a valid amount
+                            </span>
+        </div>
+
+        <div class="form-group col-md-6">
+          <label for="datePayement">Date</label>
+          <input type="date" id="datePayement" class="form-control" [formControlName]="'datePayement'"/>
+          <span *ngIf="!f.datePayement.valid && f.datePayement.touched" class="text-danger">
+                                Please provide a valid date
+                            </span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group col-md-6">
+          <label for="montant">Montant Payé</label>
+          <input [disabled]="true" type="text" id="montant_paye" class="form-control" [(ngModel)]="montantPaye"
+                 [ngModelOptions]="{standalone: true}"/>
+        </div>
+
+        <div class="form-group col-md-6">
+          <label for="reste">Reste</label>
+          <input [disabled]="true" type="text" id="reste" class="form-control" [(ngModel)]="montantRestant"
+                 [ngModelOptions]="{standalone: true}"/>
+        </div>
+      </div>
+
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <button class="btn btn-info" (click)="closeModal()">
+        <i class="pi pi-stop-circle"></i>
+        Close
+      </button>
+      <button type="submit" [disabled]="paymentForm.invalid"
+              class="btn btn-primary">
+        <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+        <i *ngIf="!(isLoading$ | async)" class="fas fa-save"></i>
+        <span *ngIf="(isLoading$ | async)">Saving...</span>
+        <span *ngIf="!(isLoading$ | async)"> Save</span>
+      </button>
+
+    </ng-template>
+
+  </p-dialog>
+
+</form>
+
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+<notifier-container></notifier-container>
+
+
+

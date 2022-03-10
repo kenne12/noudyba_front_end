@@ -1,5 +1,5 @@
 export interface MembreRequest {
-  idMembre: number,
+  idMembre?: number,
   nom: string,
   prenom: string,
   contact: string,

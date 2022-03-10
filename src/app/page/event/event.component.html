@@ -1,0 +1,217 @@
+<p-toast></p-toast>
+
+<!-- Content Header (Page header) -->
+
+<div class="container-fluid mt-3">
+  <div class="row mb-2">
+    <div class="col-sm-6">
+      <h1 class="m-0">Gestion des Evenements</h1>
+    </div><!-- /.col -->
+    <div class="col-sm-6">
+      <ol style="float: right" class="breadcrumb float-sm-right">
+
+        <button class="btn btn-primary" (click)="prepareCreateNewMember()">
+          <i class="fa fa-plus-circle"></i>
+          Add New
+        </button>
+
+        <button class="btn btn-danger p-ml-1"
+                [disabled]="!selectedEvents || !selectedEvents.length">
+          <i class="pi pi-trash"></i>
+        </button>
+
+        <button (click)="printReport()" type="button" class="btn btn-primary p-ml-1">
+          <i class="pi pi-file-pdf"></i>
+          Print Report
+        </button>
+
+        <span>
+              <select ngModel="ALL" name="status" (ngModelChange)="filterMember($event)"
+                      class="btn btn-info p-ml-1">
+                <option value="ALL">ALL</option>
+                <option value="true">ACTIF</option>
+                <option value="false">INACTIF</option>
+              </select>
+            </span>
+
+      </ol>
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container-fluid -->
+
+<!-- /.content-header -->
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+
+    <ng-container *ngIf="(appState$ | async) as appState" [ngSwitch]="appState.dataState">
+      <ng-container *ngSwitchCase="DataSate.LOADING_STATE">
+        <div class="col-md-12 single-note-item text-center">
+          <div class="spinner-border text-info" role="status"></div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="DataSate.LOADED_STATE">
+
+        <p-table #dt [value]="appState.appData.datas.events" [rows]="10" [paginator]="true"
+                 [globalFilterFields]="['code','rubrique.nom','annee.nom','dateDebut','dateFin']"
+                 [(selection)]="selectedEvents" [rowHover]="true" dataKey="idEvenement"
+                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                 [showCurrentPageReport]="true">
+          <ng-template pTemplate="caption">
+            <div class="p-d-flex p-ai-center p-jc-between">
+              <h5 class="p-m-0">Liste des Evenements</h5>
+              <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')"
+                           placeholder="Search..."/>
+                </span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem">
+                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+              </th>
+              <th pSortableColumn="code">Code
+                <p-sortIcon field="code"></p-sortIcon>
+              </th>
+              <th pSortableColumn="rubrique.nom">Rubrique
+                <p-sortIcon field="rubrique.nom"></p-sortIcon>
+              </th>
+              <th pSortableColumn="dateDebut">Début
+                <p-sortIcon field="dateDebut"></p-sortIcon>
+              </th>
+              <th pSortableColumn="dateFin">Fin
+                <p-sortIcon field="dateFin"></p-sortIcon>
+              </th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-event>
+            <tr>
+              <td>
+                <p-tableCheckbox [value]="event"></p-tableCheckbox>
+              </td>
+              <td>{{event.code}}</td>
+              <td>{{event.rubrique.nom}}</td>
+              <td>{{event.dateDebut | date :'yyyy/MM/dd'}}</td>
+              <td>{{event.dateFin | date :'yyyy/MM/dd'}}</td>
+              <td>
+                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success p-ml-1"
+                        (click)="prepareEditEvent(event)"></button>
+                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning p-ml-1"
+                        (click)="deleteEvent(event)"></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="summary">
+            <div class="p-d-flex p-ai-center p-jc-between">
+              In total there are {{appState.appData.datas.events ? appState.appData.datas.events.length : 0 }}
+              events.
+            </div>
+          </ng-template>
+        </p-table>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="DataSate.ERROR_STATE">
+        <div class="alert-danger">
+          {{appState.error}}
+        </div>
+      </ng-container>
+    </ng-container>
+
+  </div>
+</section>
+
+
+<form [formGroup]="eventForm" (ngSubmit)="saveEvent()">
+
+  <p-dialog [header]="headerText" [(visible)]="displayModal" [modal]="true" [style]="{width: '50vw'}"
+            [baseZIndex]="10000"
+            [draggable]="true" [resizable]="false">
+
+    <ng-template pTemplate="body">
+
+      <input type="hidden" id="idEvenement"
+             [formControlName]="'idEvenement'" name="idEvenement">
+
+      <div class="row p-mt-1">
+        <div class="form-group col-md-6">
+          <label for="idAnnee">Année</label>
+          <select class="form-select form-select-lg" id="idAnnee" [formControlName]="'idAnnee'">
+            <option selected>-- Select One --</option>
+            <option *ngFor="let item of listAnnees" [value]="item.idAnnee"
+                    [selected]="item.idAnnee===eventRequest.idAnnee">
+              {{item.nom}}
+              <span *ngIf="!f.idAnnee?.valid && f.idAnnee.touched">
+                                Please provide a valid year
+                            </span>
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-6">
+          <label for="idRubrique">Rubrique</label>
+          <select class="form-select form-select-lg" id="idRubrique" [formControlName]="'idRubrique'">
+            <option selected> -- Select One --</option>
+            <option *ngFor="let item of listRubriques" [value]="item.idRubrique"
+                    [selected]="item.idRubrique===eventRequest.idRubrique">
+              {{item.nom}}
+              <span *ngIf="!f.idRubrique?.valid && f.idRubrique.touched">
+                                Please provide a valid year
+                            </span>
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group col-md-6">
+          <label for="dateDebut">Date de début</label>
+          <input type="date" id="dateDebut" class="form-control" [formControlName]="'dateDebut'"/>
+          <span *ngIf="!f.dateDebut?.valid && f.dateDebut.touched" class="text-danger">
+                                Please provide a valid date
+                            </span>
+        </div>
+
+        <div class="form-group col-md-6">
+          <label for="dateFin">Date de fin</label>
+          <input type="date" id="dateFin" class="form-control" [formControlName]="'dateFin'"/>
+          <span *ngIf="!f.dateFin?.valid && f.dateFin.touched" class="text-danger">
+                                Please provide a valid date
+                            </span>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="commentaire" class="form-label"> Commentaire </label>
+        <textarea class="form-control" id="commentaire" rows="3" [formControlName]="'commentaire'"></textarea>
+      </div>
+
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <button class="btn btn-info" (click)="closeModal()">
+        <i class="pi pi-stop-circle"></i>
+        Close
+      </button>
+      <button type="submit" [disabled]="eventForm.invalid"
+              class="btn btn-primary">
+        <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+        <i *ngIf="!(isLoading$ | async)" class="fas fa-save"></i>
+        <span *ngIf="(isLoading$ | async)">Saving...</span>
+        <span *ngIf="!(isLoading$ | async)"> Save</span>
+      </button>
+
+    </ng-template>
+
+  </p-dialog>
+
+</form>
+
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+<notifier-container></notifier-container>
+

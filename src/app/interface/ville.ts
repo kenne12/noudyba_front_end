@@ -1,3 +1,4 @@
-export interface VilleRequest {
-
+export interface Ville {
+  idVille?: number;
+  nom: string
 }

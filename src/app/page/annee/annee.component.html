@@ -1,0 +1,233 @@
+<p-toast></p-toast>
+
+<!-- Content Header (Page header) -->
+<div class="content-header mt-3">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Gestion des exercices</h1>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+        <ol style="float: right" class="breadcrumb float-sm-right">
+
+          <button class="btn btn-primary" (click)="prepareCreateNewMember()">
+            <i class="fa fa-plus-circle"></i>
+            Add New
+          </button>
+
+          <button class="btn btn-danger p-ml-1"
+                  [disabled]="!selectedAnnees || !selectedAnnees.length">
+            <i class="pi pi-trash"></i>
+          </button>
+
+          <span>
+              <select ngModel="ALL" name="status" (ngModelChange)="filterAnnee($event)"
+                      class="btn btn-info p-ml-1">
+                <option value="ALL">ALL</option>
+                <option value="true">ACTIF</option>
+                <option value="false">INACTIF</option>
+              </select>
+            </span>
+
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+
+    <ng-container *ngIf="(appState$ | async) as appState" [ngSwitch]="appState.dataState">
+      <ng-container *ngSwitchCase="DataSate.LOADING_STATE">
+        <div class="col-md-12 single-note-item text-center">
+          <div class="spinner-border text-info" role="status"></div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="DataSate.LOADED_STATE">
+
+        <p-table #dt [value]="appState.appData.datas.annees" [rows]="10" [paginator]="true"
+                 [globalFilterFields]="['nom','code','dateDebut','dateFin']"
+                 [(selection)]="selectedAnnees" [rowHover]="true" dataKey="idAnnee"
+                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                 [showCurrentPageReport]="true">
+          <ng-template pTemplate="caption">
+            <div class="p-d-flex p-ai-center p-jc-between">
+              <h5 class="p-m-0">Liste des Exercices</h5>
+              <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')"
+                           placeholder="Search..."/>
+                </span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem">
+                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+              </th>
+
+              <th pSortableColumn="nom">Nom
+                <p-sortIcon field="nom"></p-sortIcon>
+              </th>
+              <th pSortableColumn="code">Code
+                <p-sortIcon field="code"></p-sortIcon>
+              </th>
+              <th pSortableColumn="dateDebut">Date debut
+                <p-sortIcon field="dateDebut"></p-sortIcon>
+              </th>
+              <th pSortableColumn="dateFin">Date fin
+                <p-sortIcon field="dateFin"></p-sortIcon>
+              </th>
+
+              <th>Status</th>
+              <th>Cloture</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-annee>
+            <tr>
+              <td>
+                <p-tableCheckbox [value]="annee"></p-tableCheckbox>
+              </td>
+              <td>{{annee.nom}}</td>
+              <td>{{annee.code}}</td>
+              <td>{{annee.dateDebut | date:'dd/MM/yyyy'}}</td>
+              <td>{{annee.dateFin | date:'dd/MM/yyyy'}}</td>
+              <td>
+                <span class="badge"
+                      [ngClass]="[annee.etat === true ? ' badge-success' : ' badge-danger']">
+                  {{annee.etat === true ? ' ACTIF' : ' INACTIF'}}
+                </span>
+              </td>
+
+              <td>
+                <span class="badge"
+                      [ngClass]="[annee.cloturee === true ? ' badge-success' : ' badge-danger']">
+                  {{annee.cloturee === true ? ' ACTIF' : ' INACTIF'}}
+                </span>
+              </td>
+              <td>
+                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success p-ml-1"
+                        (click)="prepareEditAnnee(annee)"></button>
+                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning p-ml-1"
+                        (click)="deleteAnnee(annee)"></button>
+
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="summary">
+            <div class="p-d-flex p-ai-center p-jc-between">
+              In total there are {{appState.appData.datas.annees ? appState.appData.datas.annees.length : 0 }}
+              years.
+            </div>
+          </ng-template>
+        </p-table>
+      </ng-container>
+
+
+      <ng-container *ngSwitchCase="DataSate.ERROR_STATE">
+        <div class="alert-danger">
+          {{appState.error}}
+        </div>
+      </ng-container>
+    </ng-container>
+
+
+  </div>
+</section>
+
+
+<form [formGroup]="anneeForm" (ngSubmit)="saveAnnee()">
+
+  <p-dialog [header]="headerText" [(visible)]="displayModal" [modal]="true" [style]="{width: '50vw'}"
+            [baseZIndex]="10000"
+            [draggable]="true" [resizable]="false">
+
+    <ng-template pTemplate="body">
+
+      <input type="hidden" id="idAnnee"
+             [formControlName]="'idAnnee'" name="idAnnee">
+
+      <div class="row">
+        <div class="form-group">
+          <label for="nom">Nom</label>
+          <input id="nom" type="text" class="form-control"
+                 name="nom" [formControlName]="'nom'" placeholder="Saisir le nom"/>
+          <span *ngIf="!f.nom.valid && f.nom.touched" class="text-danger">
+                                Please provide a valid name
+                            </span>
+        </div>
+      </div>
+
+      <div class="row p-mt-1">
+        <div class="form-group">
+          <label for="code">Code</label>
+          <input id="code" type="text" class="form-control"
+                 name="code" [formControlName]="'code'" placeholder="Saisir le code"/>
+          <span *ngIf="!f.code.valid && f.code.touched" class="text-danger">
+                                Please provide a valid code
+                            </span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group col-md-6">
+          <label for="dateDebut">Date de début</label>
+          <input type="date" id="dateDebut" class="form-control" [formControlName]="'dateDebut'"/>
+          <span *ngIf="!f.dateDebut?.valid && f.dateDebut.touched" class="text-danger">
+                                Please provide a valid date
+                            </span>
+        </div>
+
+        <div class="form-group col-md-6">
+          <label for="dateFin">Date de fin</label>
+          <input type="date" id="dateFin" class="form-control" [formControlName]="'dateFin'"/>
+          <span *ngIf="!f.dateFin?.valid && f.dateFin.touched" class="text-danger">
+                                Please provide a valid date
+                            </span>
+        </div>
+      </div>
+
+      <div class="row p-mt-2">
+        <div class="form-group col-md-6">
+          <label for="etat">Actif ?</label>
+          <p-selectButton id="etat" [options]="anneeState"
+                          name="etat" [formControlName]="'etat'"
+                          optionLabel="label" optionValue="value"></p-selectButton>
+        </div>
+
+        <div class="form-group col-md-6">
+          <label for="cloturee">Cloturé ?</label>
+          <p-selectButton id="cloturee" [options]="clotureState"
+                          name="cloturee" [formControlName]="'cloturee'"
+                          optionLabel="label" optionValue="value"></p-selectButton>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <button class="btn btn-info" (click)="closeModal()">
+        <i class="pi pi-stop-circle"></i>
+        Close
+      </button>
+      <button type="submit" [disabled]="anneeForm.invalid"
+              class="btn btn-primary">
+        <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+        <i *ngIf="!(isLoading$ | async)" class="fas fa-save"></i>
+        <span *ngIf="(isLoading$ | async)">Saving...</span>
+        <span *ngIf="!(isLoading$ | async)"> Save</span>
+      </button>
+
+    </ng-template>
+
+  </p-dialog>
+
+</form>
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+<notifier-container></notifier-container>
+

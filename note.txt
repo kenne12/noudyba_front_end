@@ -1,0 +1,49 @@
+Install virtualscroll
+npm install @angular/cdk --save
+
+Ajouter dans les styles
+"src/assets/params/css/fonts.googleapis.min.css",
+
+yarn add package --save
+
+npm install jquery --save
+yarn add jquery --save
+
+"@angular/cdk": "^13.2.1"
+
+
+maxFileSize="1000000"
+
+
+"node_modules/bootstrap/dist/js/bootstrap.min.js",
+"node_modules/jquery/dist/jquery.min.js"
+
+
+"node_modules/bootstrap/dist/css/bootstrap.min.css",
+
+Le cynisme connait le prix de tout , mais la valeur de rien
+
+
+/*# sourceMappingURL=bootstrap.min.css.map */
+
+//# sourceMappingURL=bootstrap.min.js.map
+
+
+//# sourceMappingURL=popper.min.js.map
+
+
+
+,
+              "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+              "node_modules/primeng/resources/themes/saga-blue/theme.css",
+              "node_modules/primeng/resources/primeng.min.css",
+              "node_modules/primeflex/primeflex.css",
+              "node_modules/primeicons/primeicons.css"
+
+
+
+
+
+
+
+

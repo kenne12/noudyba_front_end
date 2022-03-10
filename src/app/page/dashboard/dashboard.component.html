@@ -1,0 +1,132 @@
+<div class="container-fluid">
+
+  <ng-container *ngIf="(appState$ | async) as appState" [ngSwitch]="appState.dataState">
+    <ng-container *ngSwitchCase="DataSate.LOADING_STATE">
+      <div class="col-md-12 single-note-item text-center">
+        <div class="spinner-border text-info" role="status"></div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="DataSate.LOADED_STATE">
+
+      <div class="row mt-3">
+        <div class="col-md-5">
+          <select class="form-select" aria-label="Default select example">
+            <option selected>Open this select menu</option>
+            <option value="1">One</option>
+            <option value="2">Two</option>
+            <option value="3">Three</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn bg-info" (click)="loadAllCharData()"> CLic</button>
+        </div>
+      </div>
+
+      <div class="row mt-2">
+
+        <div class="col-md-3 card">
+          <h5>Contribution annuelles par rubriques</h5>
+          <p-chart type="pie" [data]="pie_data_char" [options]="pie_chart_options" [style]="{'width': '70%'}"></p-chart>
+        </div>
+
+        <div class="col-md-3 card">
+          <h5>Les 5 Plus grands contributeurs</h5>
+          <p-chart type="pie" [data]="pie_bc_data_char" [options]="pie_chart_options"
+                   [style]="{'width': '70%'}"></p-chart>
+        </div>
+
+        <div class="card col-md-6">
+          <h5>Graphique des contributions mensuelles</h5>
+          <p-chart type="bar" [data]="bar_data_char" [options]="bar_chart_options"></p-chart>
+        </div>
+      </div>
+
+      <div class="row mt-3">
+        <div class="col-md-6 card">
+          <h5>Graphique des contributions mensuelle par rubrique</h5>
+          <p-chart type="line" [data]="line_data_char" [options]="line_char_options"></p-chart>
+        </div>
+
+        <div class="col-md-6 card">
+          <h5>Sommes des contribution par membre</h5>
+
+          <table class="table table-success table-striped">
+            <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">First</th>
+              <th scope="col">Last</th>
+              <th scope="col">Montant</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr *ngFor="let item of appState.appData.datas.dashboard.contributions">
+              <th scope="row">1</th>
+              <td>{{item[0]}}</td>
+              <td> {{item[1]}} </td>
+              <td>{{item[3] | number : '0.0'}}</td>
+            </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+
+    </ng-container>
+
+    <ng-container *ngSwitchCase="DataSate.ERROR_STATE">
+      <div class="alert-danger">
+        {{appState.error}}
+      </div>
+    </ng-container>
+  </ng-container>
+
+</div>
+
+
+<form [formGroup]="form" (ngSubmit)="save()">
+
+  <p-dialog [header]="headerText" [(visible)]="display" [modal]="true" [style]="{width: '50vw'}"
+            [baseZIndex]="10000"
+            [draggable]="true" [resizable]="false">
+
+    <ng-template pTemplate="body">
+
+      <div class="row p-mt-1">
+        <div class="form-group col-md-12">
+          <label for="idAnnee">Année</label>
+          <select class="form-select form-select-lg" id="idAnnee" [formControlName]="'idAnnee'">
+            <option selected>-- Select One --</option>
+            <option *ngFor="let item of listAnnees" [value]="item.idAnnee"
+                    [selected]="item.idAnnee === idAnnee">
+              {{item.nom}}
+              <span *ngIf="!f.idAnnee.valid && f.idAnnee.touched">
+                                Please provide a valid annee
+                            </span>
+            </option>
+          </select>
+        </div>
+      </div>
+
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <button type="submit" [disabled]="form.invalid"
+              class="btn btn-primary">
+        <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+        <i *ngIf="!(isLoading$ | async)" class="fas fa-save"></i>
+        <span *ngIf="(isLoading$ | async)">Saving...</span>
+        <span *ngIf="!(isLoading$ | async)"> Save</span>
+      </button>
+
+    </ng-template>
+
+  </p-dialog>
+
+</form>
+
+
+
+

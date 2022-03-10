@@ -1,0 +1,343 @@
+<p-toast></p-toast>
+
+<!-- Content Header (Page header) -->
+
+<div class="content-header mt-3">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-4">
+        <h1 class="m-0">Gestion des membres</h1>
+      </div><!-- /.col -->
+
+      <div class="col-sm-4">
+        <div class="input-group mb-3">
+          <div class="input-group-text p-0">
+            <select class="form-select form-select-lg shadow-none bg-light border-0">
+              <option>Categories</option>
+              <option>One</option>
+              <option>Two</option>
+              <option>Three</option>
+              <option>Four</option>
+            </select>
+          </div>
+          <input type="text" class="form-control" placeholder="Search Here">
+          <button class="input-group-text shadow-none px-4 btn-warning">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <div class="col-sm-4">
+        <ol style="float: right" class="breadcrumb float-sm-right">
+
+          <button class="btn btn-primary" (click)="prepareCreateNewMember()">
+            <i class="fa fa-plus-circle"></i>
+            New Member
+          </button>
+
+          <button class="btn btn-danger p-ml-1"
+                  [disabled]="!selectedMembers || !selectedMembers.length">
+            <i class="pi pi-trash"></i>
+          </button>
+
+          <button (click)="printReport()" type="button" class="btn btn-primary p-ml-1">
+            <i class="pi pi-file-pdf"></i>
+            Print Report
+          </button>
+
+          <span>
+              <select ngModel="ALL" name="status" (ngModelChange)="filterMember($event)"
+                      class="btn btn-info p-ml-1">
+                <option value="ALL">ALL</option>
+                <option value="true">ACTIF</option>
+                <option value="false">INACTIF</option>
+              </select>
+            </span>
+
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+
+<ng-container *ngIf="(appState$ | async) as appState" [ngSwitch]="appState.dataState">
+  <ng-container *ngSwitchCase="DataSate.LOADING_STATE">
+    <div class="col-md-12 single-note-item text-center">
+      <div class="spinner-border text-info" role="status"></div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngSwitchCase="DataSate.LOADED_STATE">
+
+    <p-table #dt [value]="appState.appData.datas.membres" [rows]="10" [paginator]="true"
+             [globalFilterFields]="['nom','prenom','code','contact','ville.nom']"
+             [(selection)]="selectedMembers" [rowHover]="true" dataKey="idMembre"
+             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+             [showCurrentPageReport]="true">
+      <ng-template pTemplate="caption">
+        <div class="p-d-flex p-ai-center p-jc-between">
+          <h5 class="p-m-0">Liste des membres</h5>
+          <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')"
+                           placeholder="Search..."/>
+                </span>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 3rem">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+          <th>Image</th>
+          <th pSortableColumn="nom">Name
+            <p-sortIcon field="nom"></p-sortIcon>
+          </th>
+          <th pSortableColumn="prenom">Prenom
+            <p-sortIcon field="prenom"></p-sortIcon>
+          </th>
+          <th pSortableColumn="code">Code
+            <p-sortIcon field="code"></p-sortIcon>
+          </th>
+          <th pSortableColumn="contact">Contact
+            <p-sortIcon field="contact"></p-sortIcon>
+          </th>
+          <th pSortableColumn="ville.nom">Ville
+            <p-sortIcon field="ville.nom"></p-sortIcon>
+          </th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-member>
+        <tr>
+          <td>
+            <p-tableCheckbox [value]="member"></p-tableCheckbox>
+          </td>
+          <td><img [src]="imageUrl+'/'+member.photo" [alt]="'loading ...'" width="40" height="40"/></td>
+          <td>{{member.nom}}</td>
+          <td>{{member.prenom }}</td>
+          <td>{{member.code}}</td>
+          <td>{{member.contact}}</td>
+          <td>{{member.ville.nom}}</td>
+          <td>
+                <span class="badge"
+                      [ngClass]="[member.state === true ? ' badge-success' : ' badge-danger']">
+                  {{member.state === true ? ' ACTIF' : ' INACTIF'}}
+                </span>
+          </td>
+          <td>
+            <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success p-ml-1"
+                    (click)="prepareEditMember(member)"></button>
+            <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning p-ml-1"
+                    (click)="deleteMember(member)"></button>
+
+            <button pButton pRipple icon="pi pi-camera" (click)="prepareUpload(member)"
+                    class="p-button-rounded p-button-info p-ml-1">
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="summary">
+        <div class="p-d-flex p-ai-center p-jc-between">
+          In total there are {{appState.appData.datas.membres ? appState.appData.datas.membres.length : 0 }}
+          members.
+        </div>
+      </ng-template>
+    </p-table>
+  </ng-container>
+
+
+  <ng-container *ngSwitchCase="DataSate.ERROR_STATE">
+    <div class="alert-danger">
+      {{appState.error}}
+    </div>
+  </ng-container>
+</ng-container>
+
+
+<form [formGroup]="membreForm" (ngSubmit)="saveMember()">
+
+  <p-dialog [header]="headerText" [(visible)]="displayModal" [modal]="true" [style]="{width: '50vw'}"
+            [baseZIndex]="10000"
+            [draggable]="true" [resizable]="false">
+
+    <ng-template pTemplate="body">
+
+      <input type="hidden" id="idMembre"
+             [formControlName]="'idMembre'" name="idMembre">
+
+      <div class="row">
+        <div class="form-group">
+          <label for="nom">Nom</label>
+          <input id="nom" type="text" class="form-control"
+                 name="nom" [formControlName]="'nom'"
+                 placeholder="Saisir le nom"/>
+          <span *ngIf="!f.nom.valid && f.nom.touched" class="text-danger">
+                                Please provide a valid name
+                            </span>
+        </div>
+      </div>
+
+      <div class="row p-mt-1">
+        <div class="form-group">
+          <label for="prenom">Prenom</label>
+          <input id="prenom" type="text" class="form-control"
+                 name="prenom" [formControlName]="'prenom'"
+                 placeholder="Saisir le prenom"/>
+          <span *ngIf="!f.prenom.valid && f.prenom.touched" class="text-danger">
+                                Please provide a valid lastname
+                            </span>
+        </div>
+      </div>
+
+      <div class="row p-mt-1">
+        <div class="form-group col-md-12">
+          <label for="contact">Contact</label>
+          <input id="contact" type="text" class="form-control"
+                 name="contact" [formControlName]="'contact'"
+                 placeholder="Saisir le contact"/>
+          <span *ngIf="!f.contact?.valid && f.contact.touched" class="text-danger">
+                                Please provide a valid contact
+                            </span>
+        </div>
+      </div>
+
+      <div class="row p-mt-1">
+        <div class="form-group col-md-12">
+          <label for="ville">Ville</label>
+          <select class="form-select form-select-lg" aria-label=".form-select-lg example" id="ville"
+                  [formControlName]="'idVille'">
+            <option selected> -- Select One --</option>
+            <option *ngFor="let item of listVilles"
+                    [value]="item.idVille" [selected]="item.idVille===membreRequest.idVille">
+              {{item.nom}}
+              <span *ngIf="!f.idVille?.valid && f.idVille.touched">
+                                Please provide a valid ville
+                            </span>
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row p-mt-2">
+        <div class="form-group">
+          <label for="state">State</label>
+          <p-selectButton id="state" [options]="memberState"
+                          name="state" [formControlName]="'state'"
+                          optionLabel="label" optionValue="value"></p-selectButton>
+        </div>
+      </div>
+
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <button class="btn btn-info" (click)="closeModal()">
+        <i class="pi pi-stop-circle"></i>
+        Close
+      </button>
+      <button type="submit" [disabled]="membreForm.invalid"
+              class="btn btn-primary">
+        <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+        <i *ngIf="!(isLoading$ | async)" class="fas fa-save"></i>
+        <span *ngIf="(isLoading$ | async)">Saving...</span>
+        <span *ngIf="!(isLoading$ | async)"> Save</span>
+      </button>
+
+    </ng-template>
+
+  </p-dialog>
+
+</form>
+
+
+<p-dialog [(visible)]="imgageDialog" [style]="{width: '450px'}"
+          [header]="'Upload Member Image : ' +membreRequest.nom+' '+membreRequest.prenom"
+          [modal]="true"
+          styleClass="p-fluid">
+  <ng-template pTemplate="content">
+
+    <p-fileUpload name="file" [customUpload]="true" [auto]="true" (uploadHandler)="onUpload($event)"
+                  [multiple]="true" accept="image/*" [maxFileSize]="1000000">
+      <ng-template pTemplate="content">
+        <ul *ngIf="selectedFiles.length">
+          <li *ngFor="let file of selectedFiles">{{file.name}} - {{file.size}} bytes</li>
+        </ul>
+      </ng-template>
+    </p-fileUpload>
+
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+
+    <button class="btn btn-info"
+            (click)="imgageDialog=false">
+      <i class="pi pi-times-circle"></i>
+      <span> Close</span>
+    </button>
+
+    <button class="btn btn-primary" [disabled]="selectedFiles.length==0"
+            (click)="upload()">
+      <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+      <i *ngIf="!(isLoading$ | async)" class="pi pi-upload"></i>
+      <span *ngIf="(isLoading$ | async)"> Uplaoding...</span>
+      <span *ngIf="!(isLoading$ | async)"> Upload</span>
+    </button>
+  </ng-template>
+</p-dialog>
+
+
+<div class="modal fade" id="MemberModal_2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form #memberForm="ngForm" (ngSubmit)="saveMember_(memberForm)">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">{{headerText}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="nom_" class="col-form-label">Nom:</label>
+            <input type="text" class="form-control" id="nom_"
+                   ngModel name="nom">
+          </div>
+
+          <div class="mb-3">
+            <label for="prenom_" class="col-form-label">Prenom : </label>
+            <input type="text" class="form-control" id="prenom_"
+                   ngModel name="prenom">
+          </div>
+
+          <div class="mb-3">
+            <label for="contact_" class="col-form-label">Contact : </label>
+            <input type="text" class="form-control" id="contact_"
+                   ngModel name="contact">
+          </div>
+
+          <div class="mb-3">
+            <select class="form-control" id="ville_id">
+              <option selected value="--">-Select-</option>
+              <option *ngFor="let item of listVilles"
+                      [value]="item.idVille" [selected]="item.idVille === membreRequest.idVille">
+                {{item.nom}}
+              </option>
+            </select>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+<notifier-container></notifier-container>
+

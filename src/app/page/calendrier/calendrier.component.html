@@ -1,0 +1,147 @@
+<p-toast></p-toast>
+
+<!-- Content Header (Page header) -->
+<div class="content-header mt-3">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h3 class="m-0">Gestion du calendrier</h3>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+
+
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
+
+<!-- Main content -->
+
+<div class="container-fluid">
+
+
+  <nav style="--bs-breadcrumb-divider: '';" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item" aria-current="page">
+
+        <p-multiSelect [options]="listMonths" [(ngModel)]="selectedMonths" defaultLabel="Select Items" optionLabel="nom"
+                       display="chip" [ngModelOptions]="{standalone: true}"></p-multiSelect>
+
+      </li>
+
+      <li class="breadcrumb-item" aria-current="page">
+
+        <button type="button" class="btn btn-info p-ml-1" (click)="addMonths()">
+          <i class="fa fa-plus-circle"></i> Add
+        </button>
+
+      </li>
+
+      <li class="breadcrumb-item" aria-current="page">
+        <button type="button" class="btn btn-success" (click)="save()">
+          <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+          <i *ngIf="!(isLoading$ | async)" class="fas fa-save"></i>
+          <span *ngIf="(isLoading$ | async)"> Saving...</span>
+          <span *ngIf="!(isLoading$ | async)"> Save</span>
+        </button>
+      </li>
+
+    </ol>
+  </nav>
+
+
+  <ng-container *ngIf="(appState$ | async) as appState" [ngSwitch]="appState.dataState">
+    <ng-container *ngSwitchCase="DataSate.LOADING_STATE">
+      <div class="col-md-12 single-note-item text-center">
+        <div class="spinner-border text-info" role="status"></div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="DataSate.LOADED_STATE">
+
+      <p-table [value]="periods" dataKey="mois.id" editMode="row">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nom</th>
+            <th>Numero</th>
+            <th>Date début</th>
+            <th>Date fin</th>
+            <th style="width:8rem"></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-period let-editing="editing" let-ri="rowIndex">
+          <tr [pEditableRow]="period">
+
+            <td>{{period.mois.nom}}</td>
+
+            <td pEditableColumn>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText type="text" [(ngModel)]="period.numero" required>
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{period.numero}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+
+            <td pEditableColumn>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <p-calendar [(ngModel)]="period.dateDebut" [monthNavigator]="true" [yearNavigator]="true"
+                              dateFormat="dd/MM/yyyy"></p-calendar>
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{period.dateDebut | date : 'dd/MM/yyyy'}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+
+            <td pEditableColumn>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <p-calendar [(ngModel)]="period.dateFin" [monthNavigator]="true" [yearNavigator]="true"
+                              dateFormat="dd/MM/yyyy"></p-calendar>
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{period.dateFin | date : 'dd/MM/yyyy'}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+
+            <td style="text-align:center">
+              <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil"
+                      (click)="onRowEditInit(period)" class="p-button-rounded p-button-text"></button>
+              <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check"
+                      (click)="onRowEditSave(period)"
+                      class="p-button-rounded p-button-text p-button-success p-mr-2"></button>
+              <button *ngIf="editing" pButton pRipple type="button" pCancelEditableRow icon="pi pi-times"
+                      (click)="onRowEditCancel(period, ri)"
+                      class="p-button-rounded p-button-text p-button-danger"></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+
+    </ng-container>
+
+    <ng-container *ngSwitchCase="DataSate.ERROR_STATE">
+      <div class="alert-danger">
+        {{appState.error}}
+      </div>
+    </ng-container>
+  </ng-container>
+
+
+</div>
+
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+<notifier-container></notifier-container>
+
+
+
