@@ -25,6 +25,7 @@ const routes: Routes = [
       {path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuardService]},
       {path: 'utilisateurs', component: UtilisateurComponent, canActivate: [AuthGuardService]},
       {path: 'calendrier', component: CalendrierComponent, canActivate: [AuthGuardService]},
+      {path: 'utilisateurs', component: UtilisateurComponent, canActivate: [AuthGuardService]},
     ]
   },
   {path: "login", component: LoginComponent},

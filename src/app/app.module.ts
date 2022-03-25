@@ -34,6 +34,10 @@ import {UtilisateurComponent} from './page/utilisateur/utilisateur.component';
 import {MultiSelectModule} from "primeng/multiselect";
 import {ChartModule} from "primeng/chart";
 import {AppConfigService} from "./config/app.config.service";
+import {PickListModule} from "primeng/picklist";
+import {SpeedDialModule} from "primeng/speeddial";
+import {SplitButtonModule} from "primeng/splitbutton";
+import {ToolbarModule} from "primeng/toolbar";
 
 
 @NgModule({
@@ -71,7 +75,12 @@ import {AppConfigService} from "./config/app.config.service";
     DropdownModule,
     NgxWebstorageModule.forRoot(),
     MultiSelectModule,
-    ChartModule
+    ChartModule,
+    PickListModule,
+    SpeedDialModule,
+    SplitButtonModule,
+    MultiSelectModule,
+    ToolbarModule
   ],
   providers: [DatePipe, MessageService, ConfirmationService, AppConfigService, {
     provide: HTTP_INTERCEPTORS,

@@ -165,7 +165,6 @@ export class MembreComponent implements OnInit {
     }
 
     if (this.crudMode === "Edit") {
-
       this.appState$ = this.membreService.edit$(this.membreForm.value.idMembre, this.membreForm.value as MembreRequest)
         .pipe(
           map(response => {
@@ -244,7 +243,6 @@ export class MembreComponent implements OnInit {
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        // this.products = this.products.filter(val => val.id !== product.id);
         // this.messageService.add({severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000});
         this.appState$ = this.membreService.delete$(membre.idMembre)
           .pipe(

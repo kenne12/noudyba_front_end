@@ -10,6 +10,8 @@ import {PeriodeResponse} from "./periode.response";
 import {Mois} from "./mois";
 import {CalendarDataResponse} from "./calendar.data.response";
 import {DashboardDataResponse} from "./dashboard.data.response";
+import {UtilisateurResponse} from "./utilisateur.response";
+import {Role} from "./role";
 
 export interface CustomResponse {
   timestamp: Date;
@@ -31,6 +33,9 @@ export interface CustomResponse {
     periods?: PeriodeResponse [], period?: PeriodeResponse,
     months?: Mois[], month?: Mois,
     calendar?: CalendarDataResponse,
-    dashboard?: DashboardDataResponse
+    dashboard?: DashboardDataResponse,
+    users?: UtilisateurResponse [],
+    user?: UtilisateurResponse,
+    roles?: Role[]
   }
 }
