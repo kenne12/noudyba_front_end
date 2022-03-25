@@ -1,1 +1,352 @@
-<p>utilisateur works!</p>
+<div class="card mt-1">
+
+  <p-toast position="top-right"></p-toast>
+
+  <p-toolbar styleClass="p-mb-4">
+    <ng-template pTemplate="left">
+
+      <button pButton (click)="loadListUsers()"><i class='bx bx-refresh'></i> Load</button>
+
+      <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success p-mr-2 ml-1"
+              (click)="onPrepareNewUser()"></button>
+
+      <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger ml-1"
+              (click)="deleteSelectedUsers()" [disabled]="!selectedUsers || !selectedUsers.length"></button>
+
+      <button class="ml-1" pButton icon="pi pi-plus" (click)="onPrepareNewUser()" label="Add New"></button>
+
+    </ng-template>
+
+    <ng-template pTemplate="right">
+      <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import"
+                    class="p-mr-2 p-d-inline-block"></p-fileUpload>
+      <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help"></button>
+    </ng-template>
+  </p-toolbar>
+
+</div>
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+
+<div class="modal fade" #user_create_modal id="user_create_modal" tabindex="-1" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+        <div class="modal-header">
+          <h5 class="modal-title" id="UserCreateModalLabel">{{dialogTitle}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="idUtilisateur" [formControlName]="'idUtilisateur'">
+          <div class="row">
+            <div class="form-group">
+              <label for="nom">Nom</label>
+              <input type="text" id="nom" [formControlName]="'nom'" class="form-control" required autofocus
+                     [ngClass]="{ 'is-invalid':  submitted && f.nom.errors }">
+              <span *ngIf="!userForm?.get('nom')?.valid && userForm?.get('nom')?.touched">
+                                Please provide a valid name
+                            </span>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label for="prenom">Prenom</label>
+              <input type="text" id="prenom" [formControlName]="'prenom'" class="form-control" required autofocus>
+              <span *ngIf="!userForm?.get('prenom')?.valid && userForm?.get('prenom')?.touched">
+                                Please provide a valid lastname
+                            </span>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label for="prenom">Username</label>
+              <input type="text" id="username" [formControlName]="'username'" class="form-control" required autofocus>
+              <span *ngIf="!userForm?.get('username')?.valid && userForm?.get('username')?.touched">
+                                Please provide a valid lastname
+                            </span>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group col-md-6">
+              <label for="password">Password</label>
+              <input type="password" id="password" [formControlName]="'password'" class="form-control">
+              <small class="p-invalid" *ngIf="submitted && f.password.errors">Password is required.</small>
+            </div>
+
+            <div class="form-group col-md-6">
+              <label for="repeatPassword">Repeat Password</label>
+              <input type="password" id="repeatPassword" [formControlName]="'repeatPassword'" class="form-control"
+                     [ngClass]="{ 'is-invalid':  submitted && f.repeatPassword.errors }">
+              <small class="p-invalid" *ngIf="submitted && f.repeatPassword.errors">Retype password</small>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-check-inline">
+              <label class="form-check-label">
+                <input type="checkbox" class="form-check-input" [formControlName]="'actif'"
+                       id="actif">Etat
+              </label>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal"><i
+            class='bx bx-window-close'></i>Close
+          </button>
+          <button [disabled]="userForm.invalid" type="submit" class="btn btn-primary">
+            <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+            <i *ngIf="!(isLoading$ | async)" class="bx bx-save"></i>
+            <span *ngIf="(isLoading$ | async)">Saving...</span>
+            <span *ngIf="!(isLoading$ | async)"> Save</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" #user_manage_role_modal id="user_manage_role_modal" tabindex="-1"
+     aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <form>
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">{{dialogTitle}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+
+          <p-pickList [source]="list_role_sources" [target]="list_role_targets" sourceHeader="Available"
+                      targetHeader="Selected" [dragdrop]="true" [responsive]="true" [sourceStyle]="{'height':'300px'}"
+                      [targetStyle]="{'height':'300px'}" filterBy="name" sourceFilterPlaceholder="Search by name"
+                      targetFilterPlaceholder="Search by name">
+            <ng-template let-role pTemplate="item">
+              <div style="font-size:14px;float:right;margin:15px 5px 0 0">{{role}}</div>
+            </ng-template>
+          </p-pickList>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal"><i
+            class='bx bx-window-close'></i>Close
+          </button>
+          <button type="submit" class="btn btn-primary" (click)="saveUserAcces()">
+            <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+            <i *ngIf="!(isLoading$ | async)" class="fas fa-save"></i>
+            <span *ngIf="(isLoading$ | async)">Saving...</span>
+            <span *ngIf="!(isLoading$ | async)"> Save</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" #user_role_remove_modal id="user_role_remove_modal" tabindex="-1"
+     aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <form>
+        <div class="modal-header">
+          <h5 class="modal-title">{{dialogTitle}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <p-pickList [source]="list_role_sources" [target]="list_role_targets" sourceHeader="Available"
+                      targetHeader="Selected" [dragdrop]="true" [responsive]="true" [sourceStyle]="{'height':'300px'}"
+                      [targetStyle]="{'height':'300px'}" filterBy="name" sourceFilterPlaceholder="Search by name"
+                      targetFilterPlaceholder="Search by name">
+            <ng-template let-role pTemplate="item">
+              <div style="font-size:14px;float:right;margin:15px 5px 0 0">{{role}}</div>
+            </ng-template>
+          </p-pickList>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal"><i
+            class='bx bx-window-close'></i>Close
+          </button>
+          <button type="submit" class="btn btn-primary" (click)="removeUserAcces()">
+            <i *ngIf="(isLoading$ | async)" class="fas fa-spinner fa-spin"></i>
+            <i *ngIf="!(isLoading$ | async)" class="fas fa-save"></i>
+            <span *ngIf="(isLoading$ | async)">Saving...</span>
+            <span *ngIf="!(isLoading$ | async)"> Save</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" #user_upload_photo_modal id="user_upload_photo_modal" tabindex="-1"
+     aria-labelledby="uplaodPhotoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <form>
+        <div class="modal-header">
+          <h5 class="modal-title" id="uplaodPhotoModalLabel">{{dialogTitle}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <div class="row">
+            <div class="col-md-10">
+              <input class="form-control form-control-lg" id="formFileLg" type="file" (change)="onSelectedFile($event)">
+            </div>
+
+            <div class="col-md-2">
+              <button class="btn btn-success btn-sm" (click)="uploadPhoto()">
+                <span class="pi pi-upload"></span>
+              </button>
+              {{progress}}
+            </div>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<ng-container *ngIf="(appState$ | async) as appState" [ngSwitch]="appState.dataState">
+
+  <ng-container *ngSwitchCase="DataSate.LOADING_STATE">
+    <div class="col-md-12 single-note-item text-center">
+      <div class="spinner-border text-info" role="status"></div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngSwitchCase="DataSate.LOADED_STATE">
+
+    <div class="card mt-2">
+      <p-table #dt2 [value]="appState.appData.datas.users" dataKey="idUtilisateur" [rows]="10"
+               [showCurrentPageReport]="true" [rowsPerPageOptions]="[10,25,50]" [loading]="loading" [paginator]="true"
+               currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+               [globalFilterFields]="['nom','prenom','username','password','actif','dateCreation']">
+        <ng-template pTemplate="caption">
+          <div class="p-d-flex">
+                <span class="p-input-icon-left p-ml-auto">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt2.filterGlobal($event.target.value, 'contains')"
+                           placeholder="Search keyword"/>
+                </span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width:5%">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+            <th style="width: 20%;">Nom</th>
+            <th style="width: 20%;">Prenom</th>
+            <th style="width: 10%;">Photo</th>
+            <th style="width: 20%;">Username</th>
+            <th style="width: 10%">Date</th>
+            <th style="width: 5%">Etat</th>
+            <th style="width: 10%;"></th>
+          </tr>
+          <tr>
+            <th style="width: 5%;">
+
+            </th>
+
+            <th style="width: 20%;">
+              <p-columnFilter type="text" field="nom"></p-columnFilter>
+            </th>
+
+            <th style="width: 20%;">
+              <p-columnFilter type="text" field="prenom"></p-columnFilter>
+            </th>
+
+            <th style="width: 10%;">
+
+            </th>
+
+            <th style="width: 20%;">
+              <p-columnFilter type="text" field="login"></p-columnFilter>
+            </th>
+
+            <th style="width: 10%;">
+              <p-columnFilter type="text" field="dateCreation"></p-columnFilter>
+            </th>
+
+            <th style="width: 5%;">
+              <p-columnFilter type="boolean" field="etat"></p-columnFilter>
+            </th>
+
+            <th style="width: 10%;">
+
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-user>
+          <tr>
+            <td>
+              <p-tableCheckbox [value]="selectedUser"></p-tableCheckbox>
+            </td>
+
+            <td>
+              {{user.nom}}
+            </td>
+
+            <td>
+              {{user.prenom}}
+            </td>
+
+            <td>
+              <img [alt]="" src="http://localhost:8085/api/v2/user/{{user.idUtilisateur}}/getUserImage" width="32"
+                   style="vertical-align: middle"/>
+            </td>
+
+            <td>
+              {{user.username}}
+            </td>
+
+            <td>
+              {{user.dateCreation | date : 'dd/MM/yyyy'}}
+            </td>
+
+            <td>
+              <i class="pi"
+                 [ngClass]="{'true-icon pi-check-circle': user.actif, 'false-icon pi-times-circle': !user.actif}"></i>
+            </td>
+
+            <td>
+              <p-splitButton icon="pi pi-ellipsis-h" (onDropdownClick)="selectUser(user)" [model]="items"
+                             styleClass="p-button-info p-mb-2"></p-splitButton>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5">No customers found.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+  </ng-container>
+
+  <ng-container *ngSwitchCase="DataSate.ERROR_STATE">
+    <div class="alert-danger">
+      {{appState.error}}
+    </div>
+  </ng-container>
+</ng-container>
+

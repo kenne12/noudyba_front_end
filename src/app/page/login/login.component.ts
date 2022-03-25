@@ -7,7 +7,7 @@ import {throwError} from 'rxjs';
 
 @Component({
   selector: 'app-login',
-  templateUrl: './login.component-copy.html',
+  templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
@@ -32,7 +32,6 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
     /*this.activatedRoute.queryParams
       .subscribe(params => {
         if (params.registered !== undefined && params.registered === 'true') {

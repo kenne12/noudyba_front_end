@@ -9,31 +9,18 @@
 
     <ng-container *ngSwitchCase="DataSate.LOADED_STATE">
 
-      <div class="row mt-3">
-        <div class="col-md-5">
-          <select class="form-select" aria-label="Default select example">
-            <option selected>Open this select menu</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <button class="btn bg-info" (click)="loadAllCharData()"> CLic</button>
-        </div>
-      </div>
-
       <div class="row mt-2">
 
         <div class="col-md-3 card">
           <h5>Contribution annuelles par rubriques</h5>
-          <p-chart type="pie" [data]="pie_data_char" [options]="pie_chart_options" [style]="{'width': '70%'}"></p-chart>
+          <p-chart type="pie" [data]="pie_data_char" [options]="pie_chart_options" [style]="{'width': '80%' , 'margin-left' : '10%'}"></p-chart>
         </div>
 
         <div class="col-md-3 card">
-          <h5>Les 5 Plus grands contributeurs</h5>
+          <h5>TOP 5 Contributeurs</h5>
           <p-chart type="pie" [data]="pie_bc_data_char" [options]="pie_chart_options"
-                   [style]="{'width': '70%'}"></p-chart>
+                   [style]="{'width': '80%' , 'margin-left' : '10%'}"></p-chart>
+
         </div>
 
         <div class="card col-md-6">
@@ -55,15 +42,15 @@
             <thead>
             <tr>
               <th scope="col">#</th>
-              <th scope="col">First</th>
-              <th scope="col">Last</th>
+              <th scope="col">Nom</th>
+              <th scope="col">Prénom</th>
               <th scope="col">Montant</th>
             </tr>
             </thead>
 
             <tbody>
-            <tr *ngFor="let item of appState.appData.datas.dashboard.contributions">
-              <th scope="row">1</th>
+            <tr *ngFor="let item of appState.appData.datas.dashboard.contributions,  index as i">
+              <th scope="row"> {{i + 1}}</th>
               <td>{{item[0]}}</td>
               <td> {{item[1]}} </td>
               <td>{{item[3] | number : '0.0'}}</td>
